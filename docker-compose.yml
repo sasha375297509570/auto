@@ -6,7 +6,7 @@ services:
     build:
       context: ./nginx-balancer
     ports:      
-      - 4443:443
+      - 443:443
     volumes:
       - ..:/var/www:rw
       - ./volumes/log/nginx-balancer:/var/log/nginx     
