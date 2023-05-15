@@ -1,0 +1,148 @@
+version: "3.8"
+
+services:
+  nginx-balancer:
+    container_name: nginx-balancer
+    build:
+      context: ./nginx-balancer
+    ports:      
+      - 4443:443
+    volumes:
+      - ..:/var/www:rw
+      - ./volumes/log/nginx-balancer:/var/log/nginx     
+    restart: unless-stopped
+    depends_on:
+      - nginx-1
+      - nginx-2
+    networks:
+      - lb-net 
+
+  php-fpm-1:
+    container_name: php-fpm-1
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm-1/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}        
+    volumes:      
+      - ./../prod-1/:/var/www/
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - lb-net  
+
+  nginx-1:
+    container_name: nginx-1
+    build:
+      context: ./nginx-1
+    ports:
+      - 8081:80
+    volumes:
+      - ..:/var/www:rw
+      - ./volumes/log/nginx-1:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - php-fpm-1
+    networks:
+      - lb-net  
+
+  php-fpm-2:
+    container_name: php-fpm-2
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm-2/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}          
+    volumes:      
+      - ./../prod-2/:/var/www/
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - lb-net  
+
+  nginx-2:
+    container_name: nginx-2
+    build:
+      context: ./nginx-2
+    ports:
+      - 8082:80
+    volumes:
+      - ..:/var/www:rw
+      - ./volumes/log/nginx-2:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - php-fpm-2
+    networks:
+      - lb-net
+
+  redis:
+    image: redis/redis-stack
+    container_name: redis
+    volumes:
+      - ./volumes/redis-data/:/data
+    ports:
+      - 6379:6379
+      - 8003:8001
+    networks:
+      - lb-net
+
+
+
+  php-fpm-test:
+    container_name: php-fpm-test
+    build:
+      context: ./../
+      dockerfile: ./docker/php-fpm-test/Dockerfile
+      args:
+        - PUID=${PUID}
+        - PGID=${PGID}
+        - INSTALL_XDEBUG=${INSTALL_XDEBUG}
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+    volumes:      
+      - ./../test/:/var/www/
+    restart: unless-stopped
+    depends_on:
+      - redis-test
+    networks:
+      - lb-test-net  
+
+  nginx-test:
+    container_name: nginx-test
+    build:
+      context: ./nginx-test
+    ports:
+      - 8089:80
+    volumes:
+      - ..:/var/www:rw
+      - ./volumes/log/nginx-test:/var/log/nginx
+    restart: unless-stopped
+    depends_on:
+      - php-fpm-test
+    networks:
+      - lb-test-net  
+
+  redis-test:
+    image: redis/redis-stack
+    container_name: redis-test
+    volumes:
+      - ./volumes-test/redis-data/:/data
+    ports:
+      - 6380:6379
+      - 8004:8001
+    networks:
+      - lb-test-net     
+
+networks:
+  lb-net:
+    name: lb-network
+
+  lb-test-net:
+    name: lb-test-network  
+
+volumes:
+  db_data:
