@@ -4,6 +4,9 @@ FROM php:8.2.0-fpm-alpine
 RUN apk add --no-cache curl git build-base zlib-dev oniguruma-dev autoconf bash
 RUN apk add --update linux-headers
 
+
+COPY ./docker/php-fpm-2/php.ini /usr/local/etc/php/conf.d/php.ini
+
 # Postgres
 RUN apk add --no-cache libpq-dev && docker-php-ext-install pdo_pgsql
 
