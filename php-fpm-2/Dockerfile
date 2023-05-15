@@ -6,6 +6,7 @@ RUN apk add --update linux-headers
 
 
 COPY ./docker/php-fpm-2/php.ini /usr/local/etc/php/conf.d/php.ini
+COPY ./docker/php-fpm-test/www.conf.default usr/local/etc/www.conf.default
 
 # Postgres
 RUN apk add --no-cache libpq-dev && docker-php-ext-install pdo_pgsql

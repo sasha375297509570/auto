@@ -5,6 +5,7 @@ RUN apk add --no-cache curl git build-base zlib-dev oniguruma-dev autoconf bash
 RUN apk add --update linux-headers
 
 COPY ./docker/php-fpm-1/php.ini /usr/local/etc/php/conf.d/php.ini
+COPY ./docker/php-fpm-test/www.conf.default usr/local/etc/www.conf.default
 
 # Postgres
 RUN apk add --no-cache libpq-dev && docker-php-ext-install pdo_pgsql
