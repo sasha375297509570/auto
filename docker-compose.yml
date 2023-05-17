@@ -29,6 +29,9 @@ services:
       - ./../prod-1/:/var/www/
     restart: unless-stopped
     depends_on:
+      - alpha
+      - beta
+      - gamma
       - redis
     networks:
       - lb-net  
@@ -44,7 +47,7 @@ services:
       - ./volumes/log/nginx-1:/var/log/nginx
     restart: unless-stopped
     depends_on:
-      - php-fpm-1
+      - php-fpm-1      
     networks:
       - lb-net  
 
@@ -60,6 +63,9 @@ services:
       - ./../prod-2/:/var/www/
     restart: unless-stopped
     depends_on:
+      - alpha
+      - beta
+      - gamma
       - redis
     networks:
       - lb-net  
@@ -135,7 +141,75 @@ services:
       - 6380:6379
       - 8004:8001
     networks:
-      - lb-test-net     
+      - lb-test-net
+
+
+  alpha:
+    image: mysql/mysql-server:8.0
+    container_name: alpha
+    hostname: alpha
+    ports:
+      - '1441:3306'
+    restart: unless-stopped
+    # sets the network address which the member provides for connections from other members, specified as a host:port formatted string.
+    command: [ "mysqld", "--loose-group-replication-local-address=alpha:6606" ]
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: lpg
+    volumes:
+      - ./mysql/configs/my-cnf:/etc/mysql/my.cnf
+      - ./mysql/scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+
+  beta:
+    image: mysql/mysql-server:8.0
+    container_name: beta
+    hostname: beta
+    ports:
+      - '1442:3306'
+    restart: unless-stopped
+    # sets the network address which the member provides for connections from other members, specified as a host:port formatted string.
+    command: [ "mysqld", "--loose-group-replication-local-address=beta:6606" ]
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: lpg
+    volumes:
+      - ./mysql/configs/my-cnf:/etc/mysql/my.cnf
+      - ./mysql/scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20
+
+  gamma:
+    image: mysql/mysql-server:8.0
+    container_name: gamma
+    hostname: gamma
+    ports:
+      - '1443:3306'
+    restart: unless-stopped
+    # sets the network address which the member provides for connections from other members, specified as a host:port formatted string.
+    command: [ "mysqld", "--loose-group-replication-local-address=gamma:6606" ]
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: toor
+      MYSQL_DATABASE: lpg
+    volumes:
+      - ./mysql/configs/my-cnf:/etc/mysql/my.cnf
+      - ./mysql/scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
+      interval: 2s
+      retries: 20    
+
 
 networks:
   lb-net:
