@@ -93,7 +93,8 @@ services:
       - '1441:3306'
     restart: unless-stopped
     # sets the network address which the member provides for connections from other members, specified as a host:port formatted string.
-    command: [ "mysqld", "--loose-group-replication-local-address=alpha:6606" ]
+    command: [ "mysqld", "--loose-group-replication-local-address=alpha:6606" ]    
+    
     environment:
       MYSQL_ROOT_HOST: '%'
       MYSQL_USER: root
@@ -102,6 +103,7 @@ services:
     volumes:
       - ./mysql/configs/my-cnf:/etc/mysql/my.cnf
       - ./mysql/scripts:/docker-entrypoint-initdb.d
+      - ./mysql/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: "mysqladmin ping -u root -p$${MYSQL_ROOT_PASSWORD}"
       interval: 2s
@@ -168,6 +170,54 @@ services:
     networks:
       - lb-net
 
+
+
+  elasticsearch01:
+    image: elasticsearch:7.16.1
+    container_name: el1
+    volumes:
+      - type: bind
+        source: ./el/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - ./volumes/elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - node.name=elasticsearch01
+      - discovery.seed_hosts=elasticsearch02
+      - cluster.initial_master_nodes=elasticsearch01,elasticsearch02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - lb-net    
+
+  elasticsearch02:
+    image: elasticsearch:7.16.1
+    container_name: el2   
+    volumes:
+      - type: bind
+        source: ./el/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - ./volumes/elasticsearch2:/usr/share/elasticsearch/data
+    environment:
+      - node.name=elasticsearch02
+      - discovery.seed_hosts=elasticsearch01
+      - cluster.initial_master_nodes=elasticsearch01,elasticsearch02
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - lb-net    
 
 
   php-fpm-test:
@@ -293,6 +343,52 @@ services:
       - lb-test-net
 
 
+  elasticsearch01-test:
+    image: elasticsearch:7.16.1
+    container_name: el1-test
+    volumes:
+      - type: bind
+        source: ./el-test/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - ./volumes-test/elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+    environment:
+      - node.name=elasticsearch01-test
+      - discovery.seed_hosts=elasticsearch02-test
+      - cluster.initial_master_nodes=elasticsearch01-test,elasticsearch02-test
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - lb-test-net    
+
+  elasticsearch02-test:
+    image: elasticsearch:7.16.1
+    container_name: el2-test   
+    volumes:
+      - type: bind
+        source: ./el-test/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - ./volumes-test/elasticsearch2:/usr/share/elasticsearch/data
+    environment:
+      - node.name=elasticsearch02-test
+      - discovery.seed_hosts=elasticsearch01-test
+      - cluster.initial_master_nodes=elasticsearch01-test,elasticsearch02-test
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - lb-test-net    
 
 
 
