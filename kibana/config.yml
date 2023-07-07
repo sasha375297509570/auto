@@ -4,5 +4,5 @@ server.publicBaseUrl: "http://localhost:5601"
 monitoring.ui.container.elasticsearch.enabled: true # Для корректного сбора метрик с elastic search, запущенного в контейнере
 
 elasticsearch.hosts: [ "http://elasticsearch-elk:9200" ]
-elasticsearch.username: elastic
-elasticsearch.password: yourstrongpasswordhere
+elasticsearch.username: elastic1
+elasticsearch.password: yourstrongpasswordhere1

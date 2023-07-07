@@ -231,8 +231,8 @@ services:
       - "9401:9200"                 
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
-      ELASTIC_PASSWORD: yourstrongpasswordhere
-      ELASTIC_USER: elastic        
+      ELASTIC_PASSWORD: yourstrongpasswordhere1
+      ELASTIC_USER: elastic1        
       discovery.type: single-node
     networks:
       - lb-net 
